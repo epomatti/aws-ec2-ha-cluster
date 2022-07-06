@@ -117,12 +117,30 @@ resource "aws_security_group_rule" "ingress_ssh" {
 }
 
 # TODO: Add the Load balancer
-resource "aws_security_group_rule" "ingres_http" {
+resource "aws_security_group_rule" "ingress_http" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [var.allowed_origin]
+  security_group_id = aws_default_security_group.default.id
+}
+
+resource "aws_security_group_rule" "egress_http" {
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = [local.INADDR_ANY]
+  security_group_id = aws_default_security_group.default.id
+}
+
+resource "aws_security_group_rule" "egress_https" {
+  type              = "egress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = [local.INADDR_ANY]
   security_group_id = aws_default_security_group.default.id
 }
 
@@ -149,6 +167,10 @@ resource "aws_iam_role" "default" {
 data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
   arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+# data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
+#   arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+# }
 
 resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
   role       = aws_iam_role.default.name
@@ -196,6 +218,6 @@ resource "aws_instance" "default" {
   }
 
   tags = {
-    Name = "ec2-${var.project_name}"
+    Name = "${var.project_name}-baseimage"
   }
 }
