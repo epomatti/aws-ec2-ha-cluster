@@ -155,6 +155,12 @@ resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
+### Key Pair ###
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = file("${path.module}/id_rsa.pub")
+}
+
 ### EC2 ###
 
 resource "aws_network_interface" "default" {
@@ -177,7 +183,8 @@ resource "aws_instance" "default" {
 
   availability_zone    = var.availability_zone_1
   iam_instance_profile = aws_iam_instance_profile.default.id
-  user_data            = file("${path.module}/userdata.sh")
+  user_data            = file("${path.module}/user-data.sh")
+  key_name             = aws_key_pair.deployer.key_name
 
   network_interface {
     network_interface_id = aws_network_interface.default.id

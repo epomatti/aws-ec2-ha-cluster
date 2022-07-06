@@ -28,3 +28,8 @@ variable "allowed_origin" {
   type        = string
   description = "Use this variable to allow access only from your personal IP, if you choose so."
 }
+
+variable "instance_type" {
+  default = "t2.medium"
+  type    = string
+}
