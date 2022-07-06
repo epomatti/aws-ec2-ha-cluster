@@ -107,7 +107,7 @@ resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
 }
 
-resource "aws_security_group_rule" "web_ssh" {
+resource "aws_security_group_rule" "ingress_ssh" {
   type              = "ingress"
   from_port         = 22
   to_port           = 22
@@ -117,7 +117,7 @@ resource "aws_security_group_rule" "web_ssh" {
 }
 
 # TODO: Add the Load balancer
-resource "aws_security_group_rule" "web_http" {
+resource "aws_security_group_rule" "ingres_http" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
@@ -150,42 +150,37 @@ data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
   arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_role_policy_attachment" "s3-fullaccess" {
-  role       = aws_iam_role.bajor-ec2.name
-  policy_arn = data.aws_iam_policy.AmazonS3FullAccess.arn
-}
-
 resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
-  role       = aws_iam_role.bajor-ec2.name
+  role       = aws_iam_role.default.name
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
-### EC2 Web ###
+### EC2 ###
 
-resource "aws_network_interface" "web" {
-  subnet_id       = aws_subnet.public.id
-  security_groups = [aws_security_group.web.id]
+resource "aws_network_interface" "default" {
+  subnet_id       = aws_subnet.subnet1.id
+  security_groups = [aws_default_security_group.default.id]
 
   tags = {
-    Name = "ni-${var.project_name}-web"
+    Name = "ni-${var.project_name}"
   }
 }
 
-resource "aws_iam_instance_profile" "web" {
-  name = "web-profile"
-  role = aws_iam_role.bajor-ec2.id
+resource "aws_iam_instance_profile" "default" {
+  name = "${local.affix}-profile"
+  role = aws_iam_role.default.id
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance" "default" {
   ami           = "ami-037c192f0fa52a358"
   instance_type = var.instance_type
 
-  availability_zone    = var.availability_zone
-  iam_instance_profile = aws_iam_instance_profile.web.id
-  user_data            = file("${path.module}/userdata/public.userdata.sh")
+  availability_zone    = var.availability_zone_1
+  iam_instance_profile = aws_iam_instance_profile.default.id
+  user_data            = file("${path.module}/userdata.sh")
 
   network_interface {
-    network_interface_id = aws_network_interface.web.id
+    network_interface_id = aws_network_interface.default.id
     device_index         = 0
   }
 
@@ -194,6 +189,6 @@ resource "aws_instance" "web" {
   }
 
   tags = {
-    Name = "ec2-${var.project_name}-web"
+    Name = "ec2-${var.project_name}"
   }
 }
