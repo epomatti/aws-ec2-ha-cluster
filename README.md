@@ -9,4 +9,6 @@ To create a AMI, select the instance and 'create image"
 
 ```sh
 ssh -i id_rsa ec2-user@<ip_address>
+
+sudo su - ec2-user
 ```
