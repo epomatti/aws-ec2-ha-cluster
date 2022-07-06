@@ -1,11 +1,21 @@
-# aws-ec2
+# AWS EC2 HA Cluster
 
-to encrypt an instance, create the volume snapshot, clone it, encrypt it, and create an instance from the clone.
+A high-availability EC2 instances cluster.
 
+## 1 - Create the base instance & infrastructure
 
+Enter the AMI directory and create the base infrastructure.
 
-To create a AMI, select the instance and 'create image"
+```sh
+cd ami
 
+terraform init
+terraform apply -auto-approve
+```
+
+An Apache instance should be available on port 80.
+
+To confirm everything is working:
 
 ```sh
 ssh -i id_rsa ec2-user@<ip_address>
@@ -13,7 +23,9 @@ ssh -i id_rsa ec2-user@<ip_address>
 sudo su - ec2-user
 ```
 
-### Create an Encrypted Snapshot
+## 2 - Create the AMI
+
+This instance is not encrypted, so create an encrypted snapshot:
 
 ```sh
 # List the volumes
@@ -30,8 +42,7 @@ aws ec2 copy-snapshot \
   --encrypted
 ```
 
-### Create an Image from a Snapshot
-
+Now create the image from the snapshot:
 
 ```sh
 aws ec2 register-image \
@@ -42,7 +53,7 @@ aws ec2 register-image \
   --root-device-name "/dev/sda1"
 ```
 
-
+Optionally, create an Image directly from a running instance is possible:
 
 ```sh
 aws ec2 create-image \
@@ -50,3 +61,5 @@ aws ec2 create-image \
   --name "My server" \
   --description "An AMI for my server"
 ```
+
+### 3 - 
