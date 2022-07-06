@@ -32,7 +32,7 @@ This instance is not encrypted, so create an encrypted snapshot:
 aws ec2 describe-volumes
 
 # Create a snapshot
-aws ec2 create-snapshot --volume-id 'vol-0123456789abcdef' --description 'Unencrypted' --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=test}]'
+aws ec2 create-snapshot --volume-id 'vol-0123456789abcdef' --description 'Unencrypted' --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=Unencrypted}]'
 
 # Make an encrypted copy of a snapshot
 aws ec2 copy-snapshot \
@@ -40,13 +40,14 @@ aws ec2 copy-snapshot \
   --source-snapshot-id 'snap-0123456789abcdef' \
   --description 'Encrypted' \
   --encrypted
+  --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=Encrypted}]'
 ```
 
 Now create the image from the snapshot:
 
 ```sh
 aws ec2 register-image \
-  --name "image-from-snapshot" \
+  --name "ec2ha-encrypted" \
   --region='sa-east-1' \
   --description "AMI_from_snapshot_EBS" \
   --block-device-mappings DeviceName="/dev/sda",Ebs={SnapshotId="snap-0123456789abcdef"} \
