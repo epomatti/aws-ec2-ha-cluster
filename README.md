@@ -13,7 +13,7 @@ terraform init
 terraform apply -auto-approve
 ```
 
-An Apache instance should be available on port 80.
+Apache instance should be available on port 80.
 
 To confirm everything is working:
 
