@@ -141,10 +141,6 @@ data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
   arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
-#   arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
-# }
-
 resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
   role       = aws_iam_role.base.name
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn

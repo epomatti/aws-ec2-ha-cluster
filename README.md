@@ -53,6 +53,8 @@ aws ec2 register-image \
   --root-device-name "/dev/sda1"
 ```
 
+The image should now be available to be used for new launches.
+
 Optionally, create an Image directly from a running instance is possible:
 
 ```sh

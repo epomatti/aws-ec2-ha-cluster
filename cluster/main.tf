@@ -22,7 +22,7 @@ locals {
 }
 
 ### VPC ###
-resource "aws_vpc" "base" {
+resource "aws_vpc" "main" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
 
@@ -36,8 +36,8 @@ resource "aws_vpc" "base" {
 
 ### Internet Gateway ###
 
-resource "aws_internet_gateway" "base" {
-  vpc_id = aws_vpc.base.id
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "igw-${var.project_name}"
@@ -47,11 +47,11 @@ resource "aws_internet_gateway" "base" {
 ### Route Tables ###
 
 resource "aws_default_route_table" "internet" {
-  default_route_table_id = aws_vpc.base.default_route_table_id
+  default_route_table_id = aws_vpc.main.default_route_table_id
 
   route {
     cidr_block = local.INADDR_ANY
-    gateway_id = aws_internet_gateway.base.id
+    gateway_id = aws_internet_gateway.main.id
   }
 
   tags = {
@@ -62,7 +62,7 @@ resource "aws_default_route_table" "internet" {
 ### Subnets ###
 
 resource "aws_subnet" "subnet1" {
-  vpc_id            = aws_vpc.base.id
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = var.availability_zone_1
 
@@ -75,7 +75,7 @@ resource "aws_subnet" "subnet1" {
 }
 
 resource "aws_subnet" "subnet2" {
-  vpc_id            = aws_vpc.base.id
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.20.0/24"
   availability_zone = var.availability_zone_2
 
@@ -88,7 +88,7 @@ resource "aws_subnet" "subnet2" {
 }
 
 resource "aws_subnet" "subnet3" {
-  vpc_id            = aws_vpc.base.id
+  vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.30.0/24"
   availability_zone = var.availability_zone_3
 
@@ -103,8 +103,8 @@ resource "aws_subnet" "subnet3" {
 ### Security Group ###
 
 # This will clean up all default entries
-resource "aws_default_security_group" "base" {
-  vpc_id = aws_vpc.base.id
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
 }
 
 resource "aws_security_group_rule" "ingress_ssh" {
@@ -113,7 +113,7 @@ resource "aws_security_group_rule" "ingress_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = [var.allowed_origin]
-  security_group_id = aws_default_security_group.base.id
+  security_group_id = aws_default_security_group.default.id
 }
 
 # TODO: Add the Load balancer
@@ -123,7 +123,7 @@ resource "aws_security_group_rule" "ingress_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [var.allowed_origin]
-  security_group_id = aws_default_security_group.base.id
+  security_group_id = aws_default_security_group.default.id
 }
 
 resource "aws_security_group_rule" "egress_http" {
@@ -132,7 +132,7 @@ resource "aws_security_group_rule" "egress_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [local.INADDR_ANY]
-  security_group_id = aws_default_security_group.base.id
+  security_group_id = aws_default_security_group.default.id
 }
 
 resource "aws_security_group_rule" "egress_https" {
@@ -141,12 +141,12 @@ resource "aws_security_group_rule" "egress_https" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = [local.INADDR_ANY]
-  security_group_id = aws_default_security_group.base.id
+  security_group_id = aws_default_security_group.default.id
 }
 
 ### IAM Role ###
 
-resource "aws_iam_role" "base" {
+resource "aws_iam_role" "main" {
   name = local.affix
 
   assume_role_policy = jsonencode({
@@ -168,65 +168,59 @@ data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
   arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
-#   arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
-# }
-
 resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
-  role       = aws_iam_role.base.name
+  role       = aws_iam_role.main.name
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
 ### Key Pair ###
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key-base"
+  key_name   = "deployer-key"
   public_key = file("${path.module}/id_rsa.pub")
 }
 
 ### EC2 ###
 
-resource "aws_network_interface" "base" {
+resource "aws_network_interface" "main" {
   subnet_id       = aws_subnet.subnet1.id
-  security_groups = [aws_default_security_group.base.id]
+  security_groups = [aws_default_security_group.default.id]
 
   tags = {
     Name = "ni-${var.project_name}"
   }
 }
 
-resource "aws_iam_instance_profile" "base" {
+resource "aws_iam_instance_profile" "main" {
   name = "${local.affix}-profile"
-  role = aws_iam_role.base.id
+  role = aws_iam_role.main.id
 }
 
 ### Launch Configuration ###
 
-data "aws_iam_instance_profile" "default" {
-  name = "${local.affix}-profile"
-}
 
-resource "aws_launch_configuration" "default" {
+resource "aws_launch_configuration" "main" {
   name_prefix   = "launchconfig-${local.affix}"
   image_id      = var.ami_id
   instance_type = var.instance_type
 
-  iam_instance_profile = data.aws_iam_instance_profile.default.name
-  security_groups      = [data.aws_security_group.default.id]
+  iam_instance_profile = aws_iam_instance_profile.main.name
+  security_groups      = [aws_default_security_group.default.id]
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-# resource "aws_autoscaling_group" "bar" {
-#   name                 = "asg-${local.affix}"
-#   launch_configuration = aws_launch_configuration.default.name
-#   min_size             = var.asg_min_size
-#   max_size             = var.asg_max_size
+resource "aws_autoscaling_group" "default" {
+  name                 = "asg-${local.affix}"
+  launch_configuration = aws_launch_configuration.main.name
+  min_size             = var.asg_min_size
+  max_size             = var.asg_max_size
+  desired_capacity     = var.asg_desired_capacity
 
-#   vpc_zone_identifier = [ data.aws_vpc.default. ]
+  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
 
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
