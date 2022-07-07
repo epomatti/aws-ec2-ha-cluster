@@ -82,3 +82,9 @@ Create the EC2 cluster:
 terraform init
 terraform apply -auto-approve
 ```
+
+You should now be able to access the Apache server using the balancer URL:
+
+```
+http://ec2ha-lb-0123456789.sa-east-1.elb.amazonaws.com
+```

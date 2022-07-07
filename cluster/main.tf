@@ -116,7 +116,6 @@ resource "aws_security_group_rule" "ingress_ssh" {
   security_group_id = aws_default_security_group.default.id
 }
 
-# TODO: Add the Load balancer
 resource "aws_security_group_rule" "ingress_http" {
   type              = "ingress"
   from_port         = 80
@@ -248,9 +247,8 @@ resource "aws_autoscaling_group" "default" {
   min_size             = var.asg_min_size
   max_size             = var.asg_max_size
   desired_capacity     = var.asg_desired_capacity
-
-  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
-  target_group_arns   = [aws_lb_target_group.main.arn]
+  vpc_zone_identifier  = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+  target_group_arns    = [aws_lb_target_group.main.arn]
 
   lifecycle {
     create_before_destroy = true
