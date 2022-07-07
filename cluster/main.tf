@@ -224,3 +224,53 @@ resource "aws_autoscaling_group" "default" {
     create_before_destroy = true
   }
 }
+
+### ALB ###
+resource "aws_security_group" "allow_http_lb" {
+  name        = "Allow HTTP"
+  description = "Allow HTTP inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [local.INADDR_ANY]
+  }
+
+  tags = {
+    Name = "lb-sc"
+  }
+}
+
+resource "aws_lb_target_group" "main" {
+  name     = "tg-${local.affix}"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {
+    enabled = true
+    path    = "/"
+  }
+}
+
+resource "aws_lb" "main" {
+  name               = "${local.affix}-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_http_lb.id]
+  subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+}
+
+resource "aws_lb_listener" "main" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+}
