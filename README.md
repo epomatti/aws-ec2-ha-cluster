@@ -1,6 +1,8 @@
 # AWS EC2 HA Cluster
 
-A high-availability EC2 instances cluster.
+High-availability EC2 instances cluster provisioned with Terraform.
+
+<img src=".diagrams/aws.drawio.png" />
 
 ## 1 - Create the base instance & infrastructure
 
