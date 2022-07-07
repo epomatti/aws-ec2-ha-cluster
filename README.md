@@ -57,7 +57,7 @@ aws ec2 register-image \
 
 The image should now be available to be used for new launches.
 
-Optionally, create an Image directly from a running instance is possible:
+Optionally, creating an image directly from a running instance is possible:
 
 ```sh
 aws ec2 create-image \
