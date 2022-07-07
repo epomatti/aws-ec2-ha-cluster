@@ -21,6 +21,14 @@ locals {
   INADDR_ANY = "0.0.0.0/0"
 }
 
+### VPC Data Source ###
+data "aws_vpc" "default" {
+  id = var.vpc_id
+}
+
+data "aws_security_group" "default" {
+  id = var.security_group_id
+}
 
 ### Launch Configuration ###
 
@@ -34,6 +42,7 @@ resource "aws_launch_configuration" "default" {
   instance_type = var.instance_type
 
   iam_instance_profile = data.aws_iam_instance_profile.default.name
+  security_groups      = [data.aws_security_group.default.id]
 
   lifecycle {
     create_before_destroy = true
