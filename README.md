@@ -63,4 +63,14 @@ aws ec2 create-image \
   --description "An AMI for my server"
 ```
 
-### 3 - 
+Copy the AMI ID to use when creating the cluster.
+
+## 3 - Create the HA cluster
+
+CD into the `cluster` directory.
+
+Create a `.auto.tfvars` file with following vars:
+
+- 
+
+And any other var that you customized when creating the base.
