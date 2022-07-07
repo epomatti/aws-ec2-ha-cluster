@@ -70,8 +70,15 @@ Copy the AMI ID to use when creating the cluster.
 
 CD into the `cluster` directory.
 
-Create a `.auto.tfvars` file with following vars:
+Create a `.auto.tfvars` file that points to the AMI:
 
-- 
+```hcl
+ami_id = "ami-0123456789abcdef"
+```
 
-And any other var that you customized when creating the base.
+Create the EC2 cluster:
+
+```sh
+terraform init
+terraform apply -auto-approve
+```
