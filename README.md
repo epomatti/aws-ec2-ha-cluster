@@ -40,7 +40,6 @@ aws ec2 copy-snapshot \
   --source-snapshot-id 'snap-0123456789abcdef' \
   --description 'Encrypted' \
   --encrypted
-  --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=Encrypted}]'
 ```
 
 Now create the image from the snapshot:
