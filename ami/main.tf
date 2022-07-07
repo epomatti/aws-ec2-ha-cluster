@@ -22,7 +22,7 @@ locals {
 }
 
 ### VPC ###
-resource "aws_vpc" "main" {
+resource "aws_vpc" "base" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
 
@@ -36,8 +36,8 @@ resource "aws_vpc" "main" {
 
 ### Internet Gateway ###
 
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
+resource "aws_internet_gateway" "base" {
+  vpc_id = aws_vpc.base.id
 
   tags = {
     Name = "igw-${var.project_name}"
@@ -47,11 +47,11 @@ resource "aws_internet_gateway" "main" {
 ### Route Tables ###
 
 resource "aws_default_route_table" "internet" {
-  default_route_table_id = aws_vpc.main.default_route_table_id
+  default_route_table_id = aws_vpc.base.default_route_table_id
 
   route {
     cidr_block = local.INADDR_ANY
-    gateway_id = aws_internet_gateway.main.id
+    gateway_id = aws_internet_gateway.base.id
   }
 
   tags = {
@@ -61,50 +61,23 @@ resource "aws_default_route_table" "internet" {
 
 ### Subnets ###
 
-resource "aws_subnet" "subnet1" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.10.0/24"
-  availability_zone = var.availability_zone_1
+resource "aws_subnet" "subnet" {
+  vpc_id     = aws_vpc.base.id
+  cidr_block = "10.0.0.0/24"
 
   # Auto-assign public IPv4 address
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-subnet1"
-  }
-}
-
-resource "aws_subnet" "subnet2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.20.0/24"
-  availability_zone = var.availability_zone_2
-
-  # Auto-assign public IPv4 address
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "${var.project_name}-subnet2"
-  }
-}
-
-resource "aws_subnet" "subnet3" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.30.0/24"
-  availability_zone = var.availability_zone_3
-
-  # Auto-assign public IPv4 address
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "${var.project_name}-subnet3"
+    Name = "${var.project_name}-subnet"
   }
 }
 
 ### Security Group ###
 
 # This will clean up all default entries
-resource "aws_default_security_group" "default" {
-  vpc_id = aws_vpc.main.id
+resource "aws_default_security_group" "base" {
+  vpc_id = aws_vpc.base.id
 }
 
 resource "aws_security_group_rule" "ingress_ssh" {
@@ -113,7 +86,7 @@ resource "aws_security_group_rule" "ingress_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = [var.allowed_origin]
-  security_group_id = aws_default_security_group.default.id
+  security_group_id = aws_default_security_group.base.id
 }
 
 # TODO: Add the Load balancer
@@ -123,7 +96,7 @@ resource "aws_security_group_rule" "ingress_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [var.allowed_origin]
-  security_group_id = aws_default_security_group.default.id
+  security_group_id = aws_default_security_group.base.id
 }
 
 resource "aws_security_group_rule" "egress_http" {
@@ -132,7 +105,7 @@ resource "aws_security_group_rule" "egress_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [local.INADDR_ANY]
-  security_group_id = aws_default_security_group.default.id
+  security_group_id = aws_default_security_group.base.id
 }
 
 resource "aws_security_group_rule" "egress_https" {
@@ -141,12 +114,12 @@ resource "aws_security_group_rule" "egress_https" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = [local.INADDR_ANY]
-  security_group_id = aws_default_security_group.default.id
+  security_group_id = aws_default_security_group.base.id
 }
 
 ### IAM Role ###
 
-resource "aws_iam_role" "default" {
+resource "aws_iam_role" "base" {
   name = local.affix
 
   assume_role_policy = jsonencode({
@@ -173,43 +146,42 @@ data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
 # }
 
 resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
-  role       = aws_iam_role.default.name
+  role       = aws_iam_role.base.name
   policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
 ### Key Pair ###
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key"
+  key_name   = "deployer-key-base"
   public_key = file("${path.module}/id_rsa.pub")
 }
 
 ### EC2 ###
 
-resource "aws_network_interface" "default" {
-  subnet_id       = aws_subnet.subnet1.id
-  security_groups = [aws_default_security_group.default.id]
+resource "aws_network_interface" "base" {
+  subnet_id       = aws_subnet.subnet.id
+  security_groups = [aws_default_security_group.base.id]
 
   tags = {
     Name = "ni-${var.project_name}"
   }
 }
 
-resource "aws_iam_instance_profile" "default" {
+resource "aws_iam_instance_profile" "base" {
   name = "${local.affix}-profile"
-  role = aws_iam_role.default.id
+  role = aws_iam_role.base.id
 }
 
-resource "aws_instance" "default" {
+resource "aws_instance" "base" {
   ami           = "ami-037c192f0fa52a358"
   instance_type = var.instance_type
 
-  availability_zone    = var.availability_zone_1
-  iam_instance_profile = aws_iam_instance_profile.default.id
+  iam_instance_profile = aws_iam_instance_profile.base.id
   user_data            = file("${path.module}/user-data.sh")
   key_name             = aws_key_pair.deployer.key_name
 
   network_interface {
-    network_interface_id = aws_network_interface.default.id
+    network_interface_id = aws_network_interface.base.id
     device_index         = 0
   }
 

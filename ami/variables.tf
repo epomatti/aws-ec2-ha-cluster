@@ -4,7 +4,7 @@ variable "region" {
 }
 
 variable "project_name" {
-  default = "ec2ha"
+  default = "ec2habase"
   type    = string
 }
 
@@ -30,6 +30,6 @@ variable "allowed_origin" {
 }
 
 variable "instance_type" {
-  default = "t2.medium"
+  default = "t2.micro"
   type    = string
 }
