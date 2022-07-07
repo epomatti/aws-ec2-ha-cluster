@@ -211,20 +211,6 @@ resource "aws_launch_configuration" "main" {
   }
 }
 
-resource "aws_autoscaling_group" "default" {
-  name                 = "asg-${local.affix}"
-  launch_configuration = aws_launch_configuration.main.name
-  min_size             = var.asg_min_size
-  max_size             = var.asg_max_size
-  desired_capacity     = var.asg_desired_capacity
-
-  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
 ### ALB ###
 resource "aws_security_group" "allow_http_lb" {
   name        = "Allow HTTP"
@@ -253,6 +239,21 @@ resource "aws_lb_target_group" "main" {
   health_check {
     enabled = true
     path    = "/"
+  }
+}
+
+resource "aws_autoscaling_group" "default" {
+  name                 = "asg-${local.affix}"
+  launch_configuration = aws_launch_configuration.main.name
+  min_size             = var.asg_min_size
+  max_size             = var.asg_max_size
+  desired_capacity     = var.asg_desired_capacity
+
+  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+  target_group_arns   = [aws_lb_target_group.main.arn]
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
