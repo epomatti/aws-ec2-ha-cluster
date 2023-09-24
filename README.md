@@ -74,6 +74,8 @@ To simulate the permission issue, login with the `ec2launcher` IAM user and laun
 
 This user doesn't have KMS permissions, and the launch should fail due to that.
 
+Immediately after launching, the instance will go to `Shutting-down` state and terminate.
+
 ## 4 - Create the HA cluster
 
 CD into the `cluster` directory.
