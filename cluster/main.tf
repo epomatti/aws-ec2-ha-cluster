@@ -245,6 +245,14 @@ resource "aws_security_group" "allow_http_lb" {
     cidr_blocks = [local.INADDR_ANY]
   }
 
+  egress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [local.INADDR_ANY]
+  }
+
   tags = {
     Name = "lb-sc"
   }
