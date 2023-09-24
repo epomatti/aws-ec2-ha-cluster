@@ -38,18 +38,21 @@ aws ec2 copy-snapshot \
   --source-region 'sa-east-1' \
   --source-snapshot-id 'snap-0123456789abcdef' \
   --description 'Encrypted' \
-  --encrypted
+  --encrypted \
+  --kms-key-id '00000000-0000-0000-0000-000000000000'
 ```
 
 Now create the image from the snapshot:
 
 ```sh
 aws ec2 register-image \
-  --name "ec2ha-encrypted" \
-  --region='sa-east-1' \
-  --description "AMI_from_snapshot_EBS" \
-  --block-device-mappings DeviceName="/dev/sda",Ebs={SnapshotId="snap-0123456789abcdef"} \
-  --root-device-name "/dev/sda1"
+	--name "ec2ha-encrypted" \
+	--region='us-east-2' \
+	--description "AMI_from_snapshot_EBS" \
+	--architecture arm64 \
+	--virtualization-type hvm \
+	--block-device-mappings 'DeviceName=/dev/sda1,Ebs={SnapshotId=snap-00000000000000000}' \
+	--root-device-name "/dev/sda1"
 ```
 
 The image should now be available to be used for new launches.
@@ -65,7 +68,13 @@ aws ec2 create-image \
 
 Copy the AMI ID to use when creating the cluster.
 
-## 3 - Create the HA cluster
+## 3 - EC2 launch without KMS permissions
+
+To simulate the permission issue, login with the `ec2launcher` IAM user and launch an instance.
+
+This user doesn't have KMS permissions, and the launch should fail due to that.
+
+## 4 - Create the HA cluster
 
 CD into the `cluster` directory.
 
