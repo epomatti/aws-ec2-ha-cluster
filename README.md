@@ -97,3 +97,16 @@ You should now be able to access the Apache server using the balancer URL:
 ```sh
 curl http://ec2ha-lb-0123456789.sa-east-1.elb.amazonaws.com
 ```
+
+---
+
+### Clean-up
+
+Destroy the resources:
+
+```sh
+terraform -chdir="cluster" apply -auto-approve
+terraform -chdir="ami" apply -auto-approve
+```
+
+Delete the volumes and images created.
