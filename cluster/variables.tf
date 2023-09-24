@@ -1,5 +1,5 @@
 variable "region" {
-  default = "sa-east-1"
+  default = "us-east-2"
   type    = string
 }
 
@@ -13,7 +13,7 @@ variable "ami_id" {
 }
 
 variable "instance_type" {
-  default = "t2.micro"
+  default = "t4g.micro"
   type    = string
 }
 
@@ -33,17 +33,17 @@ variable "asg_desired_capacity" {
 }
 
 variable "availability_zone_1" {
-  default = "sa-east-1a"
+  default = "us-east-2a"
   type    = string
 }
 
 variable "availability_zone_2" {
-  default = "sa-east-1b"
+  default = "us-east-2b"
   type    = string
 }
 
 variable "availability_zone_3" {
-  default = "sa-east-1c"
+  default = "us-east-2c"
   type    = string
 }
 

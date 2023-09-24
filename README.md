@@ -78,19 +78,18 @@ Immediately after launching, the instance will go to `Shutting-down` state and t
 
 ## 4 - Create the HA cluster
 
-CD into the `cluster` directory.
 
-Create a `.auto.tfvars` file that points to the AMI:
+Create the `cluster/.auto.tfvars` file that points to the AMI:
 
-```hcl
+```terraform
 ami_id = "ami-0123456789abcdef"
 ```
 
 Create the EC2 cluster:
 
 ```sh
-terraform init
-terraform apply -auto-approve
+terraform -chdir="cluster" init
+terraform -chdir="cluster" apply -auto-approve
 ```
 
 You should now be able to access the Apache server using the balancer URL:
