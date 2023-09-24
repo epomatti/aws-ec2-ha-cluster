@@ -72,12 +72,12 @@ Copy the AMI ID to use when creating the cluster.
 
 To simulate the permission issue, login with the `ec2launcher` IAM user and launch an instance.
 
-This user doesn't have KMS permissions, and the launch should fail due to that.
+This user doesn't have KMS permissions, and the launch should fail due to that. Immediately after launching, the instance will go to `Shutting-down` state and terminate.
 
-Immediately after launching, the instance will go to `Shutting-down` state and terminate.
+💡 For the auto scaler, [special permissions][1] are required and implemented into the Terraform recipe.
+
 
 ## 4 - Create the HA cluster
-
 
 Create the `cluster/.auto.tfvars` file that points to the AMI:
 
@@ -92,6 +92,8 @@ Create the EC2 cluster:
 terraform -chdir="cluster" init
 terraform -chdir="cluster" apply -auto-approve
 ```
+
+💡 As explained earlier, [KMS permissions][1] are granted to the AWS account Autoscaling role to access the KMS-encrypted AMI.
 
 You should now be able to access the Apache server using the balancer URL:
 
@@ -111,3 +113,5 @@ terraform -chdir="ami" apply -auto-approve
 ```
 
 Delete the volumes and images created.
+
+[1]: https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html#policy-example-cmk-access
