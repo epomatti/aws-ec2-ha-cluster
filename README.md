@@ -42,7 +42,7 @@ aws ec2 copy-snapshot \
   --kms-key-id '00000000-0000-0000-0000-000000000000'
 ```
 
-Now create the image from the snapshot:
+Now. create the image from the snapshot:
 
 ```sh
 aws ec2 register-image \
