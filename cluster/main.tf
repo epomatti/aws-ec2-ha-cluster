@@ -195,18 +195,39 @@ resource "aws_iam_instance_profile" "main" {
 }
 
 ### Launch Configuration ###
+resource "aws_launch_template" "foo" {
+  name                   = "launchtemplate-${local.affix}"
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.deployer.key_name
+  image_id               = var.ami_id
+  vpc_security_group_ids = [aws_default_security_group.default.id]
 
+  block_device_mappings {
+    device_name = "/dev/sda1"
 
-resource "aws_launch_configuration" "main" {
-  name_prefix   = "launchconfig-${local.affix}"
-  image_id      = var.ami_id
-  instance_type = var.instance_type
+    ebs {
+      encrypted  = true
+      kms_key_id = var.kms_key_arn
+    }
+  }
 
-  iam_instance_profile = aws_iam_instance_profile.main.name
-  security_groups      = [aws_default_security_group.default.id]
+  iam_instance_profile {
+    name = aws_iam_instance_profile.main.name
+  }
 
-  lifecycle {
-    create_before_destroy = true
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+    instance_metadata_tags      = "enabled"
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "test"
+    }
   }
 }
 
@@ -242,13 +263,17 @@ resource "aws_lb_target_group" "main" {
 }
 
 resource "aws_autoscaling_group" "default" {
-  name                 = "asg-${local.affix}"
-  launch_configuration = aws_launch_configuration.main.name
-  min_size             = var.asg_min_size
-  max_size             = var.asg_max_size
-  desired_capacity     = var.asg_desired_capacity
-  vpc_zone_identifier  = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
-  target_group_arns    = [aws_lb_target_group.main.arn]
+  name = "asg-${local.affix}"
+
+  min_size            = var.asg_min_size
+  max_size            = var.asg_max_size
+  desired_capacity    = var.asg_desired_capacity
+  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+  target_group_arns   = [aws_lb_target_group.main.arn]
+
+  launch_template {
+    name = aws_launch_template.foo.name
+  }
 
   lifecycle {
     create_before_destroy = true

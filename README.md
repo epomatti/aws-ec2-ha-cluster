@@ -82,7 +82,8 @@ Immediately after launching, the instance will go to `Shutting-down` state and t
 Create the `cluster/.auto.tfvars` file that points to the AMI:
 
 ```terraform
-ami_id = "ami-0123456789abcdef"
+ami_id      = "ami-0123456789abcdef"
+kms_key_arn = "00000000"
 ```
 
 Create the EC2 cluster:

@@ -53,4 +53,6 @@ variable "allowed_origin" {
   description = "Use this variable to allow access only from your personal IP, if you choose so."
 }
 
-
+variable "kms_key_arn" {
+  type = string
+}
