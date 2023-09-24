@@ -108,8 +108,8 @@ curl http://ec2ha-lb-0123456789.sa-east-1.elb.amazonaws.com
 Destroy the resources:
 
 ```sh
-terraform -chdir="cluster" apply -auto-approve
-terraform -chdir="ami" apply -auto-approve
+terraform -chdir="cluster" destroy -auto-approve
+terraform -chdir="ami" destroy -auto-approve
 ```
 
 Delete the volumes and images created.
