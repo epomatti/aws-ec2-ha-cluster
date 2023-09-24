@@ -189,3 +189,8 @@ resource "aws_instance" "base" {
     Name = "${var.project_name}-baseimage"
   }
 }
+
+### Test user for AMI with KMS ###
+module "security_test_with_ami" {
+  source = "./security"
+}
