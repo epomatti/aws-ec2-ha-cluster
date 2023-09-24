@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.21.0"
+      version = "5.17.0"
     }
   }
   backend "local" {
@@ -149,7 +149,7 @@ resource "aws_iam_role_policy_attachment" "ssm-managed-instance-core" {
 ### Key Pair ###
 resource "aws_key_pair" "deployer" {
   key_name   = "deployer-key-base"
-  public_key = file("${path.module}/id_rsa.pub")
+  public_key = file("${path.module}/../temp_rsa.pub")
 }
 
 ### EC2 ###
@@ -169,7 +169,7 @@ resource "aws_iam_instance_profile" "base" {
 }
 
 resource "aws_instance" "base" {
-  ami           = "ami-037c192f0fa52a358"
+  ami           = var.ami
   instance_type = var.instance_type
 
   iam_instance_profile = aws_iam_instance_profile.base.id

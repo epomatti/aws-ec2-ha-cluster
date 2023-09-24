@@ -6,24 +6,21 @@ High-availability EC2 cluster provisioned with Terraform.
 
 ## 1 - Create the base instance & infrastructure
 
-Enter the AMI directory and create the base infrastructure.
+Start by creating a temporary key pair:
 
 ```sh
-cd ami
-
-terraform init
-terraform apply -auto-approve
+ssh-keygen -f ./tmp_rsa
 ```
 
-Apache instance should be available on port 80.
-
-To confirm everything is working:
+Create the base infrastructure:
 
 ```sh
-ssh -i id_rsa ec2-user@<ip_address>
-
-sudo su - ec2-user
+terraform -chdir="ami" init
+terraform -chdir="ami" apply -auto-approve
 ```
+
+The Apache instance should be available on port 80.
+
 
 ## 2 - Create the AMI
 
